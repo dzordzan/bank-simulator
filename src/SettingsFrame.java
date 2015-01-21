@@ -19,6 +19,11 @@ import com.jgoodies.forms.layout.RowSpec;
 public class SettingsFrame extends JFrame {
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * Create the panel.
 	 */
 	
@@ -26,6 +31,7 @@ public class SettingsFrame extends JFrame {
 	public SettingsFrame() {
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+	
 		setBounds(100, 100, 335, 242);
 		JPanel mainPanel = new JPanel();
 		setContentPane(mainPanel);
@@ -60,7 +66,7 @@ public class SettingsFrame extends JFrame {
 		final JSlider processSpeedSlider = new JSlider();
 		
 		processSpeedSlider.setMaximum(999);
-		processSpeedSlider.setValue(999);
+		processSpeedSlider.setValue(800);
 		processSpeedSlider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 	            Process.PROCESS_SPEED = 1000-processSpeedSlider.getValue();
@@ -74,7 +80,7 @@ public class SettingsFrame extends JFrame {
 		mainPanel.add(lblCzstotliwoWpat, "2, 4");
 		
 		final JSlider payinRatioSlider = new JSlider();
-		payinRatioSlider.setValue(10);
+		payinRatioSlider.setValue(15);
 		payinRatioSlider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 	            Process.PAYIN_RATIO = payinRatioSlider.getValue();
@@ -124,7 +130,7 @@ public class SettingsFrame extends JFrame {
 		averagePayoutSlider.setMajorTickSpacing(2000);
 		averagePayoutSlider.setPaintTicks(true);
 		averagePayoutSlider.setMaximum(2000);
-		averagePayoutSlider.setValue(500);
+		averagePayoutSlider.setValue(550);
 		mainPanel.add(averagePayoutSlider, "4, 8, fill, default");
 		
 		JLabel lblrSzybkocBankomatu = new JLabel("\u015Ar. szybko\u015Bc bankomatu");
@@ -134,7 +140,7 @@ public class SettingsFrame extends JFrame {
 		
 		bankSpeedSlider.setToolTipText("Wp\u0142ywa na wielko\u015B\u0107 kolejki i szybko\u015Bc symulatora");
 		bankSpeedSlider.setMaximum(1000);
-		bankSpeedSlider.setValue(800);
+		bankSpeedSlider.setValue(950);
 		bankSpeedSlider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
 	            Bank.BANK_SPEED = bankSpeedSlider.getMaximum() - bankSpeedSlider.getValue();
@@ -145,18 +151,28 @@ public class SettingsFrame extends JFrame {
 		bankSpeedSlider.setPaintLabels(true);
 		mainPanel.add(bankSpeedSlider, "4, 10");
 		
-		JCheckBox chckbxGdyBrakrodkw = new JCheckBox("W\u0142\u0105cz kolejke");
-		mainPanel.add(chckbxGdyBrakrodkw, "2, 12");
+		//JCheckBox chckbxGdyBrakrodkw = new JCheckBox("W\u0142\u0105cz kolejke");
+		//mainPanel.add(chckbxGdyBrakrodkw, "2, 12");
 		
-		JCheckBox chckbxSkalujWykres = new JCheckBox("skaluj wykres");
-		mainPanel.add(chckbxSkalujWykres, "4, 12");
+		final JCheckBox chckbxSkalujWykres = new JCheckBox("skaluj wykres");
+		chckbxSkalujWykres.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				LineChart.SCALABLE = chckbxSkalujWykres.isSelected();
+				
+			}
+		});
+		LineChart.SCALABLE = chckbxSkalujWykres.isSelected();
+		mainPanel.add(chckbxSkalujWykres, "2, 12");
 		
-		JCheckBox chckbxDwikWypaty = new JCheckBox("d\u017Awi\u0119k wyp\u0142aty");
-		mainPanel.add(chckbxDwikWypaty, "2, 14");
-		
-		JCheckBox chckbxDwikWpaty = new JCheckBox("d\u017Awi\u0119k wp\u0142aty");
-		mainPanel.add(chckbxDwikWpaty, "4, 14");
-		
+		final JCheckBox chckbxDwikWpaty = new JCheckBox("d\u017Awi\u0119k wp\u0142aty");
+		mainPanel.add(chckbxDwikWpaty, "4, 12");
+		chckbxDwikWpaty.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Bank.PAYIN_SOUND = chckbxDwikWpaty.isSelected();
+				
+			}
+		});
+		Bank.PAYIN_SOUND = chckbxDwikWpaty.isSelected();
 		final JCheckBox debugCheckBox = new JCheckBox("debuguj");
 		debugCheckBox.setSelected(true);
 		debugCheckBox.addActionListener(new ActionListener() {
@@ -165,7 +181,7 @@ public class SettingsFrame extends JFrame {
 			}
 		});
 		Projekt.DEBUG_MODE = debugCheckBox.isSelected();
-		mainPanel.add(debugCheckBox, "2, 16");
+		mainPanel.add(debugCheckBox, "2, 14");
 		
 		pack();
 		setTitle("Ustawienia");

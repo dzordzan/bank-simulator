@@ -1,3 +1,4 @@
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -26,7 +27,8 @@ public class Process extends Thread {//implements Runnable {
 	private int needsToPayout;
 	
 	
-	private int summayPayout;
+	private int summaryPayout;
+	private int summaryPayin;
 	protected BlockingQueue<Process> blockingQueue = null;
 
 	public Process(Bank account, BlockingQueue<Process> blockingQueue) {
@@ -39,7 +41,7 @@ public class Process extends Thread {//implements Runnable {
 			try {
 				
 				
-				MainFrame.showQueue2(blockingQueue.toArray());
+				//MainFrame.showQueue(blockingQueue.toArray());
 				
 				
 				
@@ -61,7 +63,7 @@ public class Process extends Thread {//implements Runnable {
 				
 				//Functions.println(firstProcess.getProcessName() + "-  "+Integer.toString(firstProcess.getNeedsToPayout()) +" wProc: "+ wProcess.getProcessName());
 				
-				MainFrame.showQueue2(blockingQueue.toArray());
+				//MainFrame.showQueue(blockingQueue.toArray());
 				
 				account.set(-wProcess.needsToPayout, wProcess);
 				wProcess.run();
@@ -80,9 +82,11 @@ public class Process extends Thread {//implements Runnable {
 		
 		account.addToQueue(this);
 		waitForPayout(true);
+		
 		while (suspended)
 			try {
 				wait();
+				
 			} catch (InterruptedException e) {
 				Functions.handleInterrupt();
 				return;
@@ -109,13 +113,13 @@ public class Process extends Thread {//implements Runnable {
 	 public void run() {
 		 while (!this.isInterrupted()) {
 			 try {
-				sleep(Functions.random(5 * PROCESS_SPEED, 11 * PROCESS_SPEED));
+				sleep(Functions.random(5 * PROCESS_SPEED, 11 * PROCESS_SPEED + 15));
 			 } catch (InterruptedException e) {
 				 Functions.handleInterrupt();
 				 return;
 				 }
 			 
-			 if (Functions.random(0, 100)<PAYIN_RATIO)
+			 if (new Random().nextInt(100)<PAYIN_RATIO)
 				 payin( Functions.random(
 						 Math.round(AVERAGE_PAYIN-AVERAGE_PAYIN/2), 
 						 Math.round(AVERAGE_PAYIN+AVERAGE_PAYIN/2)) );
@@ -134,14 +138,15 @@ public class Process extends Thread {//implements Runnable {
 
 
 
-	public int getSummayPayout() {
-		return summayPayout;
+	public int getSummaryPayout() {
+		return summaryPayout;
 	}
-
-	public void setSummayPayout(int summaryPayout) {
-		
-		
-		this.summayPayout += summaryPayout;
-		MainFrame.showLabel(getName(), summayPayout);
+	public int getSummaryPayin() {
+		return summaryPayin;
+	}
+	public void setSummary(int summary) {		
+		if (summary<0)
+			this.summaryPayout += summary; else
+				this.summaryPayin += summary;
 	}
 }

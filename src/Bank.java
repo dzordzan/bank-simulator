@@ -1,31 +1,30 @@
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class Bank extends Thread{
 	 public static int BANK_SPEED = 100;
+	 public static boolean PAYIN_SOUND;//, PAYOUT_SOUND;
 	 private ReentrantReadWriteLock operationLock = new ReentrantReadWriteLock(true);
 	 private Lock readOperation = operationLock.readLock();
 	 private Lock writeOperation = operationLock.writeLock();
-	 
-	 private List<String> operationsHistory = new ArrayList<String>();
 	
-	 
+	
+	 private BankSimulator bankSimulator;
 	 private BlockingQueue<Process> blockingQueue;
 	 
 	 private int cash = 2099;
+	 private boolean isRunning = true;
+	  
 	 
 	 
-	 
-	 
-	 public Bank (BlockingQueue<Process> blockingQueue){
+	 public Bank (BankSimulator bankSimulator, BlockingQueue<Process> blockingQueue){
 		 this.blockingQueue = blockingQueue;
+		 this.bankSimulator = bankSimulator;
 	 }
 	 
 	 public void run(){
-		 while (true){
+		 while (isRunning){
 			 checkQueue();
 		 }
 	 }
@@ -45,7 +44,7 @@ class Bank extends Thread{
 						Process firstProcess = blockingQueue.peek();
 						
 						if (Projekt.DEBUG_MODE)
-							Functions.println(String.format("[%s.%s] 1 w kolejce [%s, %d]. Stan konta: [%d]", 
+							Functions.println(String.format("[%s.%s] Pierwszy w kolejce [%s, %d]. Stan konta: [%d]", 
 									this.getClass().getName(), Thread.currentThread().getStackTrace()[1].getMethodName(),
 									firstProcess.getName(), firstProcess.getNeedsToPayout(),
 									this.getCash()
@@ -61,7 +60,7 @@ class Bank extends Thread{
 					 * 
 					 */
 					Process waitingProcess = blockingQueue.take();
-					MainFrame.showQueue2( blockingQueue.toArray() );
+					MainFrame.showQueue( blockingQueue.toArray() );
 					this.set(-waitingProcess.getNeedsToPayout(), waitingProcess);
 					
 					/*
@@ -72,6 +71,8 @@ class Bank extends Thread{
 					waitingProcess.waitForPayout(false);
 					
 				} catch (InterruptedException e) {
+					this.isRunning = false;
+					Functions.handleInterrupt();
 					e.printStackTrace();
 				}
 			
@@ -85,8 +86,9 @@ class Bank extends Thread{
 				 * Teoretycznie, czeka gdyby kolejka siê przep³ni³a (ale nie ma prawa do tego dojœæ)
 				 */
 				blockingQueue.put(process);
-				MainFrame.showQueue2(blockingQueue.toArray());
+				MainFrame.showQueue(blockingQueue.toArray());
 			} catch (InterruptedException e) {
+				this.isRunning = false;
 				Functions.handleInterrupt();
 				return;
 			}
@@ -94,6 +96,7 @@ class Bank extends Thread{
 	 
 	 public synchronized boolean set(int cash, Process process){
 		 boolean result = true;
+		 
 		 writeOperation.lock();
 		 try {
 			 
@@ -107,24 +110,28 @@ class Bank extends Thread{
 					  */
 	
 					 this.cash += cash;
-					 if (cash> 0) 
+					 if (cash> 0) {
 						 notify();
 					 
-					 //new AePlayWave( System.getProperty("user.dir")+"/src/CASHREG.WAV").start();
+						 if (Bank.PAYIN_SOUND)
+							 new AePlayWave( System.getProperty("user.dir")+"/files/CASHREG.WAV").start();
+					 }
 	
 					 Functions.println(String.format(
 							 "[BANK] Klient %s %s [%d]. Aktualny stan konta: [%d]", 
 							 	process.getName(), (cash<0)?"WYP£ACI£":"WP£ACI£",
 							 	cash, this.cash));
 							 
-					 process.setSummayPayout(cash);
+					 process.setSummary(cash);
+					 MainFrame.showSummaries(bankSimulator.getProcesses());
 					 LineChart.updateDataSet(this.cash);	
 					 
 					 try {
 							sleep(Functions.random(
 									BANK_SPEED-BANK_SPEED/3,
-									BANK_SPEED+BANK_SPEED/3+1));
+									BANK_SPEED+BANK_SPEED/3+1)+5);
 						} catch (InterruptedException e) {
+							isRunning = false;
 							Functions.handleInterrupt();
 							
 						}
@@ -137,26 +144,7 @@ class Bank extends Thread{
 		 return result;
 	 }
 	 
-	 public synchronized int add(int amount, String name) {
-		 writeOperation.lock();
-		 try {
-			// Functions.println("[BankAccount] "+name+" wp³aca "+amount+" z³");
-			 // Za³ó¿my, ze bankomat przetwarza 2 sekundy dodawanie gotówki na konto
-			 Functions.sleep(100);
-			 new AePlayWave( System.getProperty("user.dir")+"/src/CASHREG.WAV").start();
-			 this.cash += amount;
-			 LineChart.updateDataSet(cash);
-			 Functions.println("[BankAccount] "+name+" wp³aci³ "+amount+" z³. Stan konta:"+this.getInfo() );
-			 
-			 
-			 notify();
-		 	this.operationsHistory.add(name+" wp³aci³ na konto "+ Integer.toString(amount) + "z³. Stan konta:"+this.getInfo());
-		 	return cash;
-		 } finally {
-			 writeOperation.unlock();
-		 }
-		
-	 }
+
 	
 	 
 	 public String getInfo(){

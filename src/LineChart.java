@@ -17,13 +17,19 @@ public class LineChart  {
 	
 	final static XYSeries xySeries = new XYSeries("Iloœc pieniêdzy");
 	
+	public static boolean SCALABLE = false;
 	private static JFreeChart lineChart; 
 	private ChartPanel chartPanel;
 	private static int g_i = 0;
 	
 	private static LogarithmicAxis newZeroBasedLogAxis() {
 	        LogarithmicAxis axis = new LogarithmicAxis(null /* maybe title */) {
-	            @Override
+	            /**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+				@Override
 	            public Range getRange() {
 	                Range sRange = super.getRange();
 	                // ensure lowerBound < upperBound to prevent exception
@@ -103,7 +109,9 @@ public class LineChart  {
  
     public static void updateDataSet (int amount){
     	if (g_i > 50)
-    		lineChart.getXYPlot().getDomainAxis().setRange(g_i-50, g_i);
+    		if (!LineChart.SCALABLE)
+    			lineChart.getXYPlot().getDomainAxis().setRange(g_i-50, g_i); else
+    				lineChart.getXYPlot().getDomainAxis().setAutoRange(true);
     	
     	lineChart.setTitle("Aktualny stan konta - "+Integer.toString(amount)+" z³");
     	xySeries.add(g_i++, amount);
