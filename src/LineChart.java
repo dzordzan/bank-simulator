@@ -106,6 +106,10 @@ public class LineChart  {
     	return chartPanel;
     }
   
+    public static void clearDataSet(){
+    	g_i = 0;
+    	xySeries.clear();
+    }
  
     public static void updateDataSet (int amount){
     	if (g_i > 50)
